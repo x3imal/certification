@@ -26,7 +26,7 @@ public class Main {
     }
 
     // Вылет до текущего момента времени
-    private static List<Flight> filterDepartureBeforeNow(List<Flight> flights) {
+    public static List<Flight> filterDepartureBeforeNow(List<Flight> flights) {
         return flights.stream()
                 .filter(flight -> flight.getSegments().stream()
                         .noneMatch(segment ->
@@ -35,7 +35,7 @@ public class Main {
     }
 
     // Сегменты с датой прилета раньше даты вылета
-    private static List<Flight> filterArrivalBeforeDeparture(List<Flight> flights) {
+    public static List<Flight> filterArrivalBeforeDeparture(List<Flight> flights) {
         return flights.stream()
                 .filter(flight -> flight.getSegments().stream()
                         .noneMatch(segment ->
@@ -44,14 +44,16 @@ public class Main {
     }
 
     // Общее время на земле превышает два часа
-    private static List<Flight> filterLongGroundTime(List<Flight> flights) {
+    public static List<Flight> filterLongGroundTime(List<Flight> flights) {
         return flights.stream()
                 .filter(flight -> {
                     List<Segment> segments = flight.getSegments();
-                    return IntStream.range(1, segments.size())
-                            .allMatch(i -> Duration.between(segments.get(i - 1)
+                    long totalGroundTime = IntStream.range(1, segments.size())
+                            .mapToLong(i -> Duration.between(segments.get(i - 1)
                                     .getArrivalDate(), segments.get(i)
-                                    .getDepartureDate()).toHours() <= 2);
+                                    .getDepartureDate()).toMinutes())
+                            .sum();
+                    return totalGroundTime <= 120;
                 })
                 .collect(Collectors.toList());
     }
